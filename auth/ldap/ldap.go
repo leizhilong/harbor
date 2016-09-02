@@ -61,12 +61,37 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 	ldap.SetOption(openldap.LDAP_OPT_PROTOCOL_VERSION, openldap.LDAP_VERSION3)
 
 	ldapBaseDn := os.Getenv("LDAP_BASE_DN")
+	ldapSearchBaseDn := os.Getenv("LDAP_SEARCH_BASE_DN")
+	ldapSearchFilter := os.Getenv("LDAP_SEARCH_FILTER")
+
 	if ldapBaseDn == "" {
 		return nil, errors.New("Can not get any available LDAP_BASE_DN.")
 	}
 
-	baseDn := fmt.Sprintf(ldapBaseDn, m.Principal)
-	log.Debug("baseDn:", baseDn)
+	if ldapSearchBaseDn == "" {
+		ldapSearchBaseDn = ldapBaseDn
+	}
+
+	if ldapSearchFilter == "" {
+		ldapSearchFilter = "objectClass=*"
+	}
+
+	baseDn := ldapBaseDn
+	if strings.Count(ldapBaseDn, "%s") == 1 {
+		baseDn = fmt.Sprintf(ldapBaseDn, m.Principal)
+	}
+
+	searchBaseDn := ldapSearchBaseDn
+	if strings.Count(ldapSearchBaseDn, "%s") == 1 {
+		searchBaseDn = fmt.Sprintf(ldapSearchBaseDn, m.Principal)
+	}
+
+	searchFilter := ldapSearchFilter
+	if strings.Count(ldapSearchFilter, "%s") == 1 {
+		searchFilter = fmt.Sprintf(ldapSearchFilter, m.Principal)
+	}
+
+	log.Debug("baseDn:", baseDn, " searchBaseDn:", searchBaseDn, " searchFilter:", searchFilter)
 
 	err = ldap.Bind(baseDn, m.Password)
 	if err != nil {
@@ -75,10 +100,10 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 	defer ldap.Close()
 
 	scope := openldap.LDAP_SCOPE_SUBTREE // LDAP_SCOPE_BASE, LDAP_SCOPE_ONELEVEL, LDAP_SCOPE_SUBTREE
-	filter := "objectClass=*"
+	// filter := "objectClass=*"
 	attributes := []string{"mail"}
 
-	result, err := ldap.SearchAll(baseDn, scope, filter, attributes)
+	result, err := ldap.SearchAll(searchBaseDn, scope, searchFilter, attributes)
 	if err != nil {
 		return nil, err
 	}

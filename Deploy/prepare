@@ -41,6 +41,8 @@ harbor_admin_password = rcp.get("configuration", "harbor_admin_password")
 auth_mode = rcp.get("configuration", "auth_mode")
 ldap_url = rcp.get("configuration", "ldap_url")
 ldap_basedn = rcp.get("configuration", "ldap_basedn")
+ldap_search_basedn = rcp.get("configuration", "ldap_search_basedn")
+ldap_search_filter = rcp.get("configuration", "ldap_search_filter")
 db_password = rcp.get("configuration", "db_password")
 self_registration = rcp.get("configuration", "self_registration")
 use_compressed_js = rcp.get("configuration", "use_compressed_js")
@@ -57,7 +59,7 @@ token_expiration = rcp.get("configuration", "token_expiration")
 verify_remote_cert = rcp.get("configuration", "verify_remote_cert")
 ########
 
-ui_secret = ''.join(random.choice(string.ascii_letters+string.digits) for i in range(16))  
+ui_secret = ''.join(random.choice(string.ascii_letters+string.digits) for i in range(16))
 
 base_dir = os.path.dirname(__file__)
 config_dir = os.path.join(base_dir, "config")
@@ -104,11 +106,13 @@ render(os.path.join(templates_dir, "ui", "env"),
         harbor_admin_password=harbor_admin_password,
         ldap_url=ldap_url,
         ldap_basedn=ldap_basedn,
-	self_registration=self_registration,
-	use_compressed_js=use_compressed_js,
+        ldap_search_basedn=ldap_search_basedn,
+        ldap_search_filter=ldap_search_filter,
+        self_registration=self_registration,
+        use_compressed_js=use_compressed_js,
         ui_secret=ui_secret,
-	verify_remote_cert=verify_remote_cert,
-	token_expiration=token_expiration)
+        verify_remote_cert=verify_remote_cert,
+        token_expiration=token_expiration)
 
 render(os.path.join(templates_dir, "ui", "app.conf"),
         ui_conf,
